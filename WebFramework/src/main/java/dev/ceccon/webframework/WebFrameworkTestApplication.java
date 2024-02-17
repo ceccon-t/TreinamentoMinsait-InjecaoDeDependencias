@@ -5,6 +5,6 @@ import dev.ceccon.webframework.web.WebFrameworkWebApplication;
 public class WebFrameworkTestApplication {
 
     public static void main(String[] args) {
-        WebFrameworkWebApplication.run();
+        WebFrameworkWebApplication.run(WebFrameworkTestApplication.class);
     }
 }
