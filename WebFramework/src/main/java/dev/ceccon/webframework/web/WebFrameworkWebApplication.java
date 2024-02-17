@@ -1,5 +1,9 @@
 package dev.ceccon.webframework.web;
 
+import dev.ceccon.webframework.annotations.WebframeworkGetMethod;
+import dev.ceccon.webframework.annotations.WebframeworkPostMethod;
+import dev.ceccon.webframework.datastructures.ControllerMap;
+import dev.ceccon.webframework.datastructures.RequestControllerData;
 import dev.ceccon.webframework.explorer.ClassExplorer;
 import dev.ceccon.webframework.util.WebFrameworkLogger;
 import org.apache.catalina.Context;
@@ -8,6 +12,8 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -24,8 +30,11 @@ public class WebFrameworkWebApplication {
 
             // Class explorer
             // Começar a criar um metodo de extracao de metadados:
+            /*
             List<String> allClasses = ClassExplorer.retrieveAllClasses(sourceClass);
             allClasses.forEach(c -> WebFrameworkLogger.log("Embedded Web Controller", "Class found: " + c));
+            */
+            extractMetadata(sourceClass);
 
             ini = System.currentTimeMillis();
 
@@ -56,6 +65,56 @@ public class WebFrameworkWebApplication {
             tomcat.getServer().await();;
         } catch (LifecycleException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void extractMetadata(Class<?> sourceClass) {
+        try {
+            List<String> allClasses = ClassExplorer.retrieveAllClasses(sourceClass);
+
+            for (String classe: allClasses) {
+                // Recuperar as anotações da classe
+                Annotation annotations[] = Class.forName(classe).getAnnotations();
+                for (Annotation classAnnotation : annotations) {
+                    if (classAnnotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkController")) {
+                        WebFrameworkLogger.log("Metada Explorer", "Found a controller: " + classe);
+                        extractMethods(classe);
+                    }
+                }
+            }
+
+            for (RequestControllerData item : ControllerMap.values.values()) {
+                WebFrameworkLogger.log("",
+                        item.getHttpMethod() + ":" + item.getUrl()
+                                    + " [" + item.getControllerClass() + "." + item.getControllerMethod() + "]"
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void extractMethods(String className) throws Exception {
+        String httpMethod = "";
+        String path = "";
+
+        // Recuperar todos os metodos da classe
+        for (Method method : Class.forName(className).getDeclaredMethods()) {
+            //WebFrameworkLogger.log(" - ", method.getName());
+            for (Annotation annotation : method.getAnnotations()) {
+                if (annotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkGetMethod")) {
+                    httpMethod = "GET";
+                    path = ((WebframeworkGetMethod) annotation).value();
+                } else if (annotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkPostMethod")) {
+                    httpMethod = "POST";
+                    path = ((WebframeworkPostMethod) annotation).value();
+                }
+
+                //WebFrameworkLogger.log(" - ", httpMethod + " " + path);
+                RequestControllerData reqData = new RequestControllerData(httpMethod, path, className, method.getName());
+                ControllerMap.values.put(httpMethod + path, reqData);
+            }
         }
     }
 }
