@@ -4,6 +4,7 @@ import dev.ceccon.webframework.annotations.WebframeworkGetMethod;
 import dev.ceccon.webframework.annotations.WebframeworkPostMethod;
 import dev.ceccon.webframework.datastructures.ControllerMap;
 import dev.ceccon.webframework.datastructures.RequestControllerData;
+import dev.ceccon.webframework.datastructures.ServiceImplementationMap;
 import dev.ceccon.webframework.explorer.ClassExplorer;
 import dev.ceccon.webframework.util.WebFrameworkLogger;
 import org.apache.catalina.Context;
@@ -79,6 +80,12 @@ public class WebFrameworkWebApplication {
                     if (classAnnotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkController")) {
                         WebFrameworkLogger.log("Metada Explorer", "Found a controller: " + classe);
                         extractMethods(classe);
+                    } else if (classAnnotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkService")) {
+                        WebFrameworkLogger.log("Metada Explorer", "Found a service implementation: " + classe);
+                        for (Class<?> interfaceWeb : Class.forName(classe).getInterfaces()) {
+                            WebFrameworkLogger.log("Metada Explorer", "  Class implements: " + interfaceWeb.getName());
+                            ServiceImplementationMap.implementations.put(interfaceWeb.getName(), classe);
+                        }
                     }
                 }
             }

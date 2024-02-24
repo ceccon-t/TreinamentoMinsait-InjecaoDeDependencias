@@ -1,9 +1,7 @@
 package dev.ceccon.webframework.web;
 
 import com.google.gson.Gson;
-import dev.ceccon.webframework.datastructures.ControllerInstances;
-import dev.ceccon.webframework.datastructures.ControllerMap;
-import dev.ceccon.webframework.datastructures.RequestControllerData;
+import dev.ceccon.webframework.datastructures.*;
 import dev.ceccon.webframework.util.WebFrameworkLogger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -14,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
@@ -50,6 +49,8 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
                 controller = Class.forName(data.controllerClass).getDeclaredConstructor()
                         .newInstance(); // HelloController controller = new HelloController();
                 ControllerInstances.instance.put(data.controllerClass, controller);
+
+                injectDependencies(controller);
             }
 
             // Precisamos extrair o metodo desta classe - ou seja o metodo que vai atender
@@ -93,6 +94,32 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void injectDependencies(Object controller) throws Exception {
+        // ver apenas os campos anotados por Inject
+        for (Field attr: controller.getClass().getDeclaredFields()) {
+            String attrTipo = attr.getType().getName();
+            WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Injetar " + attr.getName() + " do tipo " + attrTipo);
+            Object serviceImpl;
+            if (DependencyInjectionMap.objects.get(attrTipo) == null) {
+                // tem declaracao da interface?
+                String implType = ServiceImplementationMap.implementations.get(attrTipo);
+                WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Procurar instancias de " + implType);
+                if (implType != null) {
+                    serviceImpl = DependencyInjectionMap.objects.get(implType);
+                    if (serviceImpl == null) {
+                        WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Injetar novo objeto");
+                        serviceImpl = Class.forName(implType).getDeclaredConstructor().newInstance();
+                        DependencyInjectionMap.objects.put(implType, serviceImpl);
+                    }
+                    // atribuir essa instancia ao atributo anotado
+                    attr.setAccessible(true);
+                    attr.set(controller, serviceImpl);
+                    WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Objeto injetado com sucesso");
+                }
+            }
         }
     }
 

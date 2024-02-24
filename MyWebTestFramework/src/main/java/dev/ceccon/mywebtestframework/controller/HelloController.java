@@ -1,13 +1,14 @@
 package dev.ceccon.mywebtestframework.controller;
 
 import dev.ceccon.mywebtestframework.model.Produto;
-import dev.ceccon.webframework.annotations.WebframeworkBody;
-import dev.ceccon.webframework.annotations.WebframeworkController;
-import dev.ceccon.webframework.annotations.WebframeworkGetMethod;
-import dev.ceccon.webframework.annotations.WebframeworkPostMethod;
+import dev.ceccon.mywebtestframework.service.IService;
+import dev.ceccon.webframework.annotations.*;
 
 @WebframeworkController
 public class HelloController {
+
+    @WebframeworkInject
+    private IService iService;
 
     @WebframeworkGetMethod("/hello")
     public String returnHelloWorld() {
@@ -34,5 +35,10 @@ public class HelloController {
     @WebframeworkGetMethod("/teste2")
     private String teste2() {
         return "Teste2!";
+    }
+
+    @WebframeworkGetMethod("/injected")
+    public String chamadaCustom() {
+        return iService.chamadaCustom("Hello injected");
     }
 }
