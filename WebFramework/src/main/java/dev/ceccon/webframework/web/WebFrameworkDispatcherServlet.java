@@ -10,9 +10,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 public class WebFrameworkDispatcherServlet extends HttpServlet {
 
@@ -59,13 +62,47 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
                 }
             }
 
-            WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Invocar o metodo " + controllerMethod.getName() + " para requisicao");
+            // meu metodo tem parametros?
+            if (controllerMethod.getParameterCount() > 0) {
+                WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Metodo " + controllerMethod.getName() + " tem parametros!");
+                Object arg;
+                Parameter parameter = controllerMethod.getParameters()[0];
+                if (parameter.getAnnotations()[0].annotationType().getName()
+                        .equals("dev.ceccon.webframework.annotations.WebframeworkBody")) {
 
-            out.println(gson.toJson(controllerMethod.invoke(controller)));
+                    WebFrameworkLogger.log("", "Procurando parametro da requisicao do tipo " + parameter.getType().getName());
+                    String body = readBytesFromRequest(req);
+
+                    WebFrameworkLogger.log("", "Conteudo do parametro: " + body);
+
+                    arg = gson.fromJson(body, parameter.getType());
+
+                    WebFrameworkLogger.log("WebFrameworkDispatcherServlet",
+                            "Invocar o metodo " + controllerMethod.getName() +
+                                      " com o parametro do tipo " + parameter.getType().toString() +
+                                      " para requisicao");
+                    out.println(gson.toJson(controllerMethod.invoke(controller, arg)));
+                }
+            } else {
+                WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Invocar o metodo " + controllerMethod.getName() + " para requisicao");
+
+                out.println(gson.toJson(controllerMethod.invoke(controller)));
+            }
+
             out.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String readBytesFromRequest(HttpServletRequest req) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(req.getInputStream()));
+        while((line = bufferedReader.readLine()) != null) {
+            stringBuilder.append(line);
+        }
+        return stringBuilder.toString();
     }
 }
