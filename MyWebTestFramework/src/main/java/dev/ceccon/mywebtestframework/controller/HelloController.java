@@ -26,7 +26,13 @@ public class HelloController {
         return "Produto cadastrado";
     }
 
+    @WebframeworkGetMethod("/teste")
     public String teste() {
         return "Teste!";
+    }
+
+    @WebframeworkGetMethod("/teste2")
+    private String teste2() {
+        return "Teste2!";
     }
 }

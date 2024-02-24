@@ -111,7 +111,7 @@ public class WebFrameworkWebApplication {
                     path = ((WebframeworkPostMethod) annotation).value();
                 }
 
-                //WebFrameworkLogger.log(" - ", httpMethod + " " + path);
+                WebFrameworkLogger.log(" - CHAVE: ", httpMethod + path);
                 RequestControllerData reqData = new RequestControllerData(httpMethod, path, className, method.getName());
                 ControllerMap.values.put(httpMethod + path, reqData);
             }
