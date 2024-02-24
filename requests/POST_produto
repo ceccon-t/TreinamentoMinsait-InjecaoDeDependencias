@@ -1,0 +1,1 @@
+curl -d '{"id":2, "nome":"Nome2", "valor": 3000.0, "linkFoto": "foto.jpg"}' -H "Content-Type: application/json" -X POST http://localhost:8080/produto
