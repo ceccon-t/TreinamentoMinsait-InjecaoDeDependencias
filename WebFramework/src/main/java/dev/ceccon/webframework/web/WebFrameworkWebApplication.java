@@ -3,10 +3,12 @@ package dev.ceccon.webframework.web;
 import dev.ceccon.webframework.annotations.WebframeworkGetMethod;
 import dev.ceccon.webframework.annotations.WebframeworkPostMethod;
 import dev.ceccon.webframework.datastructures.ControllerMap;
+import dev.ceccon.webframework.datastructures.MethodParam;
 import dev.ceccon.webframework.datastructures.RequestControllerData;
 import dev.ceccon.webframework.datastructures.ServiceImplementationMap;
 import dev.ceccon.webframework.explorer.ClassExplorer;
 import dev.ceccon.webframework.util.WebFrameworkLogger;
+import dev.ceccon.webframework.util.WebFrameworkUtil;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
@@ -94,6 +96,7 @@ public class WebFrameworkWebApplication {
                 WebFrameworkLogger.log("",
                         item.getHttpMethod() + ":" + item.getUrl()
                                     + " [" + item.getControllerClass() + "." + item.getControllerMethod() + "]"
+                                    + ((item.getParameter().length() > 0) ? " - Expected parameter " + item.getParameter() : "")
                 );
             }
 
@@ -105,21 +108,41 @@ public class WebFrameworkWebApplication {
     private static void extractMethods(String className) throws Exception {
         String httpMethod = "";
         String path = "";
+        String parameter = "";
 
         // Recuperar todos os metodos da classe
         for (Method method : Class.forName(className).getDeclaredMethods()) {
+            parameter = "";
             //WebFrameworkLogger.log(" - ", method.getName());
             for (Annotation annotation : method.getAnnotations()) {
                 if (annotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkGetMethod")) {
                     httpMethod = "GET";
                     path = ((WebframeworkGetMethod) annotation).value();
+
+                    // verificar se existe parametro no path
+                    MethodParam methodParam = WebFrameworkUtil.convertURI2MethodParam(path);
+                    if (methodParam != null) {
+                        path = methodParam.getMethod();
+                        if (methodParam.getParam() != null) {
+                            parameter = methodParam.getParam();
+                        }
+                    }
                 } else if (annotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkPostMethod")) {
                     httpMethod = "POST";
                     path = ((WebframeworkPostMethod) annotation).value();
+
+                    // verificar se existe parametro no path
+                    MethodParam methodParam = WebFrameworkUtil.convertURI2MethodParam(path);
+                    if (methodParam != null) {
+                        path = methodParam.getMethod();
+                        if (methodParam.getParam() != null) {
+                            parameter = methodParam.getParam();
+                        }
+                    }
                 }
 
                 WebFrameworkLogger.log(" - CHAVE: ", httpMethod + path);
-                RequestControllerData reqData = new RequestControllerData(httpMethod, path, className, method.getName());
+                RequestControllerData reqData = new RequestControllerData(httpMethod, path, className, method.getName(), parameter);
                 ControllerMap.values.put(httpMethod + path, reqData);
             }
         }
