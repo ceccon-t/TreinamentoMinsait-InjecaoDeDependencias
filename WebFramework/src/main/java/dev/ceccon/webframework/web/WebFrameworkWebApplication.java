@@ -1,5 +1,6 @@
 package dev.ceccon.webframework.web;
 
+import dev.ceccon.webframework.annotations.WebframeworkDeleteMethod;
 import dev.ceccon.webframework.annotations.WebframeworkGetMethod;
 import dev.ceccon.webframework.annotations.WebframeworkPostMethod;
 import dev.ceccon.webframework.datastructures.ControllerMap;
@@ -139,6 +140,19 @@ public class WebFrameworkWebApplication {
                             parameter = methodParam.getParam();
                         }
                     }
+                } else if (annotation.annotationType().getName().equals("dev.ceccon.webframework.annotations.WebframeworkDeleteMethod")) {
+                    httpMethod = "DELETE";
+                    path = ((WebframeworkDeleteMethod) annotation).value();
+
+                    // verificar se existe parametro no path
+                    MethodParam methodParam = WebFrameworkUtil.convertURI2MethodParam(path);
+                    if (methodParam != null) {
+                        path = methodParam.getMethod();
+                        if (methodParam.getParam() != null) {
+                            parameter = methodParam.getParam();
+                        }
+                    }
+
                 }
 
                 WebFrameworkLogger.log(" - CHAVE: ", httpMethod + path);

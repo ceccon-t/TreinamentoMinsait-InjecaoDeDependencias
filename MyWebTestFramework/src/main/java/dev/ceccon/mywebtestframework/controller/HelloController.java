@@ -2,7 +2,10 @@ package dev.ceccon.mywebtestframework.controller;
 
 import dev.ceccon.mywebtestframework.model.Produto;
 import dev.ceccon.mywebtestframework.service.IService;
+import dev.ceccon.mywebtestframework.service.ProdutoService;
 import dev.ceccon.webframework.annotations.*;
+
+import java.util.List;
 
 @WebframeworkController
 public class HelloController {
@@ -10,15 +13,17 @@ public class HelloController {
     @WebframeworkInject
     private IService iService;
 
+    @WebframeworkInject
+    private ProdutoService produtoService;
+
     @WebframeworkGetMethod("/hello")
     public String returnHelloWorld() {
         return "Hello World!!!";
     }
 
     @WebframeworkGetMethod("/produto")
-    public Produto exibirProduto() {
-        Produto p = new Produto(1, "Nome1", 2000.0, "teste.jpg");
-        return p;
+    public List<Produto> listarProdutos() {
+        return produtoService.listar();
     }
 
     @WebframeworkPostMethod("/produto")
@@ -46,5 +51,15 @@ public class HelloController {
     @WebframeworkGetMethod("/retornavalor/{valor}")
     public String retornoValor(@WebframeworkPathVariable Double valor) {
         return "Retornando o valor de parametro: " + valor;
+    }
+
+    // =======================
+    // ENDPOINTS DA AVALIACAO:
+    // =======================
+
+    @WebframeworkDeleteMethod("/produto/{id}")
+    public String deletarProduto(@WebframeworkPathVariable Integer id) {
+        produtoService.deletar(id);
+        return "Produto com id " + id + " deletado com sucesso.";
     }
 }
