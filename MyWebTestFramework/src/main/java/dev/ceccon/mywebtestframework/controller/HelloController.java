@@ -44,7 +44,7 @@ public class HelloController {
 
     // localhost://localhost:8080/retornavalor/22222 == Retornando o valor de parametro: 22222
     @WebframeworkGetMethod("/retornavalor/{valor}")
-    public String retornoValor(@WebframeworkPathVariable String valor) {
+    public String retornoValor(@WebframeworkPathVariable Double valor) {
         return "Retornando o valor de parametro: " + valor;
     }
 }
