@@ -28,7 +28,7 @@ public class HelloController {
 
     @WebframeworkPostMethod("/produto")
     public Produto cadastraProduto(@WebframeworkBody Produto produtoNovo) {
-        System.out.println(produtoNovo);
+        produtoNovo = produtoService.criar(produtoNovo);
         return produtoNovo;
     }
 
