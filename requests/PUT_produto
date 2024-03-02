@@ -1,0 +1,1 @@
+curl -d '{"id":3, "nome":"Nome3AtualizadoComPUT", "valor": 3333.0, "linkFoto": "teste3.jpg"}' -H "Content-Type: application/json" -X PUT http://localhost:8080/produto/3 

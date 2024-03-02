@@ -92,9 +92,10 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
                                       " para requisicao");
                     out.println(gson.toJson(controllerMethod.invoke(controller, arg)));
                 }*/
-                Object arg;
+                Object[] args = new Object[controllerMethod.getParameterCount()];
                 Parameter[] parameters = controllerMethod.getParameters();
-                for (Parameter parameter : parameters) {
+                for (int i = 0; i < parameters.length; i++) {
+                    Parameter parameter = parameters[i];
                     for (Annotation annotation : parameter.getAnnotations()) {
                         if(annotation.annotationType().getName()
                                 .equals("dev.ceccon.webframework.annotations.WebframeworkBody")) {
@@ -103,13 +104,12 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
 
                             WebFrameworkLogger.log("", "Conteudo do parametro: " + body);
 
-                            arg = gson.fromJson(body, parameter.getType());
+                            args[i] = gson.fromJson(body, parameter.getType());
 
                             WebFrameworkLogger.log("WebFrameworkDispatcherServlet",
                                     "Invocar o metodo " + controllerMethod.getName() +
                                             " com o parametro do tipo " + parameter.getType().toString() +
                                             " para requisicao");
-                            out.println(gson.toJson(controllerMethod.invoke(controller, arg)));
 
                         } else if (annotation.annotationType().getName()
                                 .equals("dev.ceccon.webframework.annotations.WebframeworkPathVariable")) {
@@ -117,12 +117,12 @@ public class WebFrameworkDispatcherServlet extends HttpServlet {
 
                             WebFrameworkLogger.log("", "Conteudo do parametro: " + methodParam.getParam());
 
-                            arg = WebFrameworkUtil.convert2Type(methodParam.getParam(), parameter.getType());
+                            args[i] = WebFrameworkUtil.convert2Type(methodParam.getParam(), parameter.getType());
 
-                            out.println(gson.toJson(controllerMethod.invoke(controller, arg)));
                         }
                     }
                 }
+                out.println(gson.toJson(controllerMethod.invoke(controller, args)));
             } else {
                 WebFrameworkLogger.log("WebFrameworkDispatcherServlet", "Invocar o metodo " + controllerMethod.getName() + " para requisicao");
 

@@ -62,4 +62,11 @@ public class HelloController {
         produtoService.deletar(id);
         return "Produto com id " + id + " deletado com sucesso.";
     }
+
+    @WebframeworkPutMethod("/produto/{id}")
+    public Produto atualizarProduto(@WebframeworkBody Produto produtoAtualizado, @WebframeworkPathVariable Integer id) {
+        Produto atualizado = produtoService.atualizar(id, produtoAtualizado);
+        return atualizado;
+    }
+
 }
